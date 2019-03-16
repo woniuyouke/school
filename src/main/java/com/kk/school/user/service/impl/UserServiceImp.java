@@ -7,20 +7,24 @@ import com.kk.school.common.FacePlus;
 import com.kk.school.user.dao.UserDao;
 import com.kk.school.user.entity.User;
 import com.kk.school.user.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
+import sun.rmi.runtime.Log;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class UserServiceImp implements UserService {
 
     @Autowired
     UserDao userDao;
+
 
     @Override
     public boolean userExist(String no) {
@@ -57,10 +61,11 @@ public class UserServiceImp implements UserService {
                     user.setFaceScore(value);
                     user.setFaceToken(faceToken);
                 } else {
-                    throw new CommonException("人脸识别失败");
+                    throw new CommonException("人脸识别失败,请重试");
                 }
             } catch (Exception e) {
-                throw new CommonException("人脸识别失败");
+                 log.error("人脸识别出现异常",e);
+                throw new CommonException("人脸识别失败,请重试");
             }
         }else{
             throw  new CommonException("图片未上传");
