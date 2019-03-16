@@ -1,5 +1,6 @@
 package com.kk.school.common;
 
+import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -43,7 +44,12 @@ public class LogAspect {
         log.info("===============response begin===============");
         log.info("time: " + DateUtil.getTimestamp());
         log.info("class_method: " + joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName());
-        log.info("result: " + result);
+        try {
+            log.info("result: " + JSON.toJSONString(result));
+        }catch (Exception e){
+            log.error("出参不能转json",e);
+        }
+
         log.info("===============response end===============");
     }
 }
