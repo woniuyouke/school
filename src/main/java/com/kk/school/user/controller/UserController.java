@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 
 @Controller
 @Slf4j
@@ -33,7 +34,7 @@ public class UserController {
 
     @PostMapping("/login")
     @ResponseBody
-    public ResultVo login(@RequestParam("no") String no, @RequestParam("pwd") String pwd, HttpServletRequest request) {
+    public ResultVo login(@RequestParam("account") String no, @RequestParam("password") String pwd, HttpServletRequest request) {
         User user = userService.findUser(no);
         if (user == null) {
             throw new CommonException("用户不存在");
@@ -45,6 +46,8 @@ public class UserController {
             }
         }
         ResultVo resultVo = new ResultVo();
+        user.setPwd(null);
+        resultVo.setData(user);
         resultVo.setMsg("登录成功");
         resultVo.setResultCode(Constants.SUC_CODE);
         return resultVo;
@@ -63,13 +66,12 @@ public class UserController {
             throw new CommonException("参数不能为空");
         }
         Map<String,String> map = JSONObject.parseObject(param,Map.class);
-        System.out.println(map);
         User user = new User();
         user.setSchNo(map.get("account"));
         user.setPwd(map.get("password"));
         user.setName(map.get("username"));
 
-        if(StringUtils.isBlank(map.get("clazz"))){
+        if(StringUtils.isNotBlank(map.get("clazz"))){
             user.setType(0);
             user.setClassId(Integer.parseInt(map.get("clazz")));
         }else{
@@ -91,13 +93,14 @@ public class UserController {
         if (userService.userExist(user.getSchNo())) {
             throw new CommonException("账号已经存在");
         }
-        userService.face(user, file);
+        user.setFaceToken(UUID.randomUUID().toString());
         try {
             fileUtil.generateImage(file.getBytes(), user.getFaceToken());
         } catch (IOException e) {
             log.error("e", "生成图片失败");
             throw  new CommonException("请重试");
         }
+        userService.face(user, file);
         user.setFacePath(fileUtil.path+File.separator+user.getFaceToken()+".jepg");
         boolean result = userService.saveUser(user);
         ResultVo resultVo = new ResultVo();
